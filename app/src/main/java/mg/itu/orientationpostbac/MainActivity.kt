@@ -24,7 +24,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val database = AppDatabase.obtenir(this)
-        val repository = FormationRepository(database.formationDao(), database.etablissementDao())
+        val repository = FormationRepository(
+            database.formationDao(),
+            database.etablissementDao(),
+            database.questionRiasecDao(),
+        )
         setContent {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize()) {

@@ -19,6 +19,7 @@ import mg.itu.orientationpostbac.domain.Formation
 class FormationRepository(
     private val formationDao: FormationDao,
     private val etablissementDao: EtablissementDao,
+    private val questionRiasecDao: QuestionRiasecDao,
 ) {
 
     val formations: Flow<List<Formation>> =
@@ -38,6 +39,6 @@ class FormationRepository(
 
     /** Pré-remplissage au premier lancement : l'origine des données ne regarde que cette couche. */
     suspend fun preparerDonnees() {
-        remplirSiVide(formationDao, etablissementDao)
+        remplirSiVide(formationDao, etablissementDao, questionRiasecDao)
     }
 }

@@ -11,12 +11,18 @@ package mg.itu.orientationpostbac.data
  * au tableau 4 du document (US-FINALE, Épopée 7).
  *
  * Les établissements sont insérés avant les formations : une formation
- * référence un établissement par son identifiant.
+ * référence un établissement par son identifiant. Les questions du
+ * questionnaire sont comptées à part : elles peuvent évoluer (12 à 15 items)
+ * sans que le catalogue ait à être réinséré.
  */
 suspend fun remplirSiVide(
     formationDao: FormationDao,
     etablissementDao: EtablissementDao,
+    questionRiasecDao: QuestionRiasecDao,
 ) {
+    if (questionRiasecDao.compter() == 0) {
+        questionRiasecDao.insererTous(questionsRiasecInitiales)
+    }
     if (formationDao.compter() > 0) return
 
     etablissementDao.insererTous(etablissementsInitiaux)
