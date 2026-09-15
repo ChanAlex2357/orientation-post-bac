@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import mg.itu.orientationpostbac.data.AppDatabase
 import mg.itu.orientationpostbac.data.FormationRepository
 import mg.itu.orientationpostbac.data.ProfilRepository
@@ -50,10 +49,6 @@ class CatalogueViewModel(application: Application) : AndroidViewModel(applicatio
     private val profilRepository = ProfilRepository(database.profilUtilisateurDao())
 
     private val recherche = MutableStateFlow("")
-
-    init {
-        viewModelScope.launch { formationRepository.preparerDonnees() }
-    }
 
     /**
      * La recherche change la SOURCE des formations, elle ne filtre pas la
