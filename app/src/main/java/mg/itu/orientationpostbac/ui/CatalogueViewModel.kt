@@ -9,12 +9,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import mg.itu.orientationpostbac.data.AppDatabase
 import mg.itu.orientationpostbac.data.FormationRepository
 import mg.itu.orientationpostbac.data.ProfilRepository
 import mg.itu.orientationpostbac.domain.DomaineSuggere
+import mg.itu.orientationpostbac.domain.Etablissement
 import mg.itu.orientationpostbac.domain.Formation
 import mg.itu.orientationpostbac.domain.FormationEvaluee
 import mg.itu.orientationpostbac.domain.classerDomaines
@@ -38,6 +41,15 @@ data class EtatCatalogue(
 ) {
     val total: Int = eligibles.size + nonEligibles.size
 }
+
+/**
+ * Ce que l'ecran Detail affiche. L'etablissement peut manquer si la donnee
+ * est incomplete : on l'affiche alors en moins, sans empecher la fiche.
+ */
+data class DetailFormation(
+    val evaluee: FormationEvaluee,
+    val etablissement: Etablissement?,
+)
 
 class CatalogueViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -102,5 +114,32 @@ class CatalogueViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun filtrerParDomaine(domaineChoisi: String?) {
         domaine.value = domaineChoisi
+    }
+
+    private val _detail = MutableStateFlow<DetailFormation?>(null)
+    val detail: StateFlow<DetailFormation?> = _detail
+
+    /**
+     * L'ecran Detail ne recoit pas la formation, il la RETROUVE a partir de
+     * l'identifiant porte par la route — "la route est du texte comme une
+     * URL" (document 2.2.3, patron du mini-TP 5). La recherche par
+     * identifiant est une requete suspend, pas un Flow : c'est une question
+     * ponctuelle et non un etat a suivre (regle de la seance 7).
+     */
+    fun ouvrirDetail(formationId: String) {
+        viewModelScope.launch {
+            val formation = formationRepository.formationParId(formationId)
+            if (formation == null) {
+                _detail.value = null
+                return@launch
+            }
+            val profil = profilRepository.profil.first()
+            val etablissement = formationRepository.etablissementParId(formation.etablissementId)
+
+            _detail.value = DetailFormation(
+                evaluee = evaluerCatalogue(listOf(formation), profil).first(),
+                etablissement = etablissement,
+            )
+        }
     }
 }
