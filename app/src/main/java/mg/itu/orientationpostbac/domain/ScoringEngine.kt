@@ -90,7 +90,23 @@ object ScoringEngine {
         else -> MatchBand.WEAK
     }
 
-    /** Similarité moyenne, dimension par dimension, entre profil élève et profil cible (0..100). */
+    /**
+     * Similarité entre le profil de l'élève et le profil cible de la
+     * formation, dimension par dimension, PONDÉRÉE par l'intérêt déclaré de
+     * l'élève sur chaque dimension.
+     *
+     * La moyenne simple, écrite d'abord, avait un défaut que l'essai sur le
+     * vrai jeu de données a révélé : elle récompense l'accord sur des
+     * dimensions dont l'élève ne se soucie pas. Six petits accords sur des
+     * dimensions faibles pouvaient l'emporter sur un écart franc sur la
+     * dimension dominante, et une formation de maintenance passait devant
+     * une licence d'informatique pour un profil Investigateur.
+     *
+     * Pondérer par l'intérêt de l'élève suit le modèle RIASEC, qui lit un
+     * profil par ses dimensions dominantes et non par ses six valeurs à
+     * égalité. Un élève sans aucun intérêt déclaré (questionnaire non
+     * rempli) retombe sur la moyenne simple, faute de pondération possible.
+     */
     private fun scoreInterets(profil: RiasecProfile, cible: RiasecProfile): Int {
         val dimensions = listOf(
             profil.realiste to cible.realiste,
@@ -100,9 +116,16 @@ object ScoringEngine {
             profil.entreprenant to cible.entreprenant,
             profil.conventionnel to cible.conventionnel,
         )
-        return dimensions
-            .map { (score, cibleScore) -> (100 - abs(score - cibleScore)).coerceIn(0, 100) }
-            .average()
+        val similarites = dimensions.map { (interet, cibleScore) ->
+            interet to (100 - abs(interet - cibleScore)).coerceIn(0, 100)
+        }
+
+        val totalInterets = similarites.sumOf { (interet, _) -> interet }
+        if (totalInterets == 0) return similarites.map { (_, similarite) -> similarite }.average().roundToInt()
+
+        return similarites
+            .sumOf { (interet, similarite) -> interet.toDouble() * similarite }
+            .div(totalInterets)
             .roundToInt()
     }
 
