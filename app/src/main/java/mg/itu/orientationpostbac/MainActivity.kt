@@ -18,6 +18,8 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import mg.itu.orientationpostbac.data.AppDatabase
 import mg.itu.orientationpostbac.data.FormationRepository
+import mg.itu.orientationpostbac.ui.CatalogueViewModel
+import mg.itu.orientationpostbac.ui.EcranParcours
 import mg.itu.orientationpostbac.ui.EcranProfil
 import mg.itu.orientationpostbac.ui.EcranQuestionnaire
 import mg.itu.orientationpostbac.ui.ProfilViewModel
@@ -51,6 +53,7 @@ class MainActivity : ComponentActivity() {
 object Routes {
     const val PROFIL = "profil"
     const val QUESTIONNAIRE = "questionnaire"
+    const val PARCOURS = "parcours"
 }
 
 /**
@@ -69,7 +72,9 @@ object Routes {
 private fun AppOrientation() {
     val navController = rememberNavController()
     val profilViewModel: ProfilViewModel = viewModel()
+    val catalogueViewModel: CatalogueViewModel = viewModel()
     val etat by profilViewModel.etat.collectAsState()
+    val etatCatalogue by catalogueViewModel.etat.collectAsState()
 
     NavHost(navController = navController, startDestination = Routes.PROFIL) {
 
@@ -92,10 +97,24 @@ private fun AppOrientation() {
                 onRepondre = profilViewModel::repondre,
                 onTerminer = {
                     // Le profil est reenregistre : les reponses du
-                    // questionnaire changent le RiasecProfile calcule.
+                    // questionnaire changent le RiasecProfile calcule, et
+                    // c'est cet enregistrement que le catalogue observe.
                     profilViewModel.enregistrer()
+                    navController.navigate(Routes.PARCOURS)
                 },
                 onRetour = { navController.popBackStack() },
+            )
+        }
+
+        composable(Routes.PARCOURS) {
+            EcranParcours(
+                etat = etatCatalogue,
+                reponsesDonnees = etat.questionsRepondues,
+                questionsTotal = etat.questions.size,
+                onCompleterQuestionnaire = { navController.navigate(Routes.QUESTIONNAIRE) },
+                onDomaineChoisi = { /* US5.4 : liste des formations du domaine */ },
+                onVoirToutesLesFormations = { /* US5.4 */ },
+                onModifierProfil = { navController.popBackStack(Routes.PROFIL, inclusive = false) },
             )
         }
     }
