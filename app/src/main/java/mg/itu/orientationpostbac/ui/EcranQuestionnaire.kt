@@ -2,6 +2,8 @@ package mg.itu.orientationpostbac.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -81,6 +83,7 @@ fun EcranQuestionnaire(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CarteQuestion(
     question: QuestionRiasec,
@@ -93,7 +96,10 @@ private fun CarteQuestion(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(question.texte, style = MaterialTheme.typography.bodyLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 PALIERS.forEach { (valeur, libelle) ->
                     FilterChip(
                         selected = reponse == valeur,

@@ -2,7 +2,8 @@ package mg.itu.orientationpostbac.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -130,14 +131,25 @@ private fun Section(titre: String, contenu: @Composable () -> Unit) {
     }
 }
 
-/** Une ligne de choix fermés : la valeur retenue est celle du modèle, pas une saisie libre. */
+/**
+ * Une ligne de choix fermés : la valeur retenue est celle du modèle, pas une
+ * saisie libre.
+ *
+ * FlowRow et non Row : sur un écran étroit, 4 libellés ne tiennent pas sur
+ * une ligne et le dernier sortait de l'écran. La cible du projet est le
+ * téléphone d'entrée de gamme (minSdk 24), pas la tablette.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun <T> ChoixUnique(
     options: List<Pair<T, String>>,
     selection: T?,
     onChoisir: (T) -> Unit,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         options.forEach { (valeur, libelle) ->
             FilterChip(
                 selected = selection == valeur,
