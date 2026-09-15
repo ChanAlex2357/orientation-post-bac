@@ -43,6 +43,7 @@ fun EcranDetail(
     dansLeProjet: Boolean,
     onAjouterAuProjet: () -> Unit,
     onRetirerDuProjet: () -> Unit,
+    onVoirMonProjet: () -> Unit,
     onRetour: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -64,7 +65,10 @@ fun EcranDetail(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        TextButton(onClick = onRetour) { Text("Retour") }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            TextButton(onClick = onRetour) { Text("Retour") }
+            TextButton(onClick = onVoirMonProjet) { Text("Mon projet") }
+        }
 
         Text(formation.nom, style = MaterialTheme.typography.headlineSmall)
         Text(

@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,10 +40,12 @@ fun EcranParcours(
     onDomaineChoisi: (String) -> Unit,
     onVoirToutesLesFormations: () -> Unit,
     onModifierProfil: () -> Unit,
+    onVoirMonProjet: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize().padding(16.dp)) {
         Text("Parcours suggeres", style = MaterialTheme.typography.headlineSmall)
+        TextButton(onClick = onVoirMonProjet) { Text("Mon projet") }
 
         if (!etat.profilRenseigne) {
             ProfilManquant(onModifierProfil)
