@@ -18,16 +18,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import mg.itu.orientationpostbac.data.AppDatabase
-import mg.itu.orientationpostbac.data.remplirSiVide
+import mg.itu.orientationpostbac.data.FormationRepository
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val database = AppDatabase.obtenir(this)
+        val repository = FormationRepository(database.formationDao(), database.etablissementDao())
         setContent {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize()) {
-                    EcranAmorcage(database)
+                    EcranAmorcage(repository)
                 }
             }
         }
@@ -35,20 +36,20 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * ÉCRAN TEMPORAIRE DE VÉRIFICATION (US2.3).
+ * ÉCRAN TEMPORAIRE DE VÉRIFICATION (US2.3, passé au Repository en US3.1).
  *
  * Il sert uniquement à constater que le pré-remplissage a eu lieu et que la
- * base répond. Il lit le DAO directement, ce qui est volontairement contraire
- * à l'architecture visée : le Repository (US3.1) puis le ViewModel (Épopée 4)
- * s'intercaleront, et les vrais écrans (Épopée 5) remplaceront celui-ci.
+ * chaîne Room -> Repository -> domaine répond. Il manque encore le ViewModel :
+ * l'état est lu directement dans le composable, ce qui ne survivra pas à la
+ * rotation. L'Épopée 4 corrige ce point et l'Épopée 5 remplace cet écran.
  * Ne pas prendre ce fichier pour modèle.
  */
 @Composable
-private fun EcranAmorcage(database: AppDatabase) {
-    LaunchedEffect(Unit) { remplirSiVide(database) }
+private fun EcranAmorcage(repository: FormationRepository) {
+    LaunchedEffect(Unit) { repository.preparerDonnees() }
 
-    val formations by database.formationDao().toutes().collectAsState(initial = emptyList())
-    val etablissements by database.etablissementDao().tous().collectAsState(initial = emptyList())
+    val formations by repository.formations.collectAsState(initial = emptyList())
+    val etablissements by repository.etablissements.collectAsState(initial = emptyList())
 
     Column(Modifier.padding(16.dp)) {
         Text("Orientation post-Bac", style = MaterialTheme.typography.headlineSmall)
@@ -66,6 +67,10 @@ private fun EcranAmorcage(database: AppDatabase) {
                     )
                     Text(
                         "${formation.domaine} · ${formation.localisation} · ${formation.statutReconnaissance}",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text(
+                        "series : ${formation.seriesAdmissibles.joinToString { it.name }}",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }

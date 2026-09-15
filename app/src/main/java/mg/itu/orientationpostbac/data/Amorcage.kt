@@ -13,9 +13,12 @@ package mg.itu.orientationpostbac.data
  * Les établissements sont insérés avant les formations : une formation
  * référence un établissement par son identifiant.
  */
-suspend fun remplirSiVide(database: AppDatabase) {
-    if (database.formationDao().compter() > 0) return
+suspend fun remplirSiVide(
+    formationDao: FormationDao,
+    etablissementDao: EtablissementDao,
+) {
+    if (formationDao.compter() > 0) return
 
-    database.etablissementDao().insererTous(etablissementsInitiaux)
-    database.formationDao().insererTous(formationsInitiales)
+    etablissementDao.insererTous(etablissementsInitiaux)
+    formationDao.insererTous(formationsInitiales)
 }
