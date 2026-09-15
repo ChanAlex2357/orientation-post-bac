@@ -38,4 +38,44 @@ class ScoringEngineTest {
         assertEquals(79, resultat.score)
         assertEquals(MatchBand.PARTIAL, resultat.band)
     }
+
+    /**
+     * Verrou de non-regression sur la ponderation des interets.
+     *
+     * Deux formations face a un eleve nettement Investigateur : l'une colle a
+     * sa dimension dominante, l'autre s'en ecarte mais s'accorde sur cinq
+     * dimensions qui ne l'interessent pas. Avec une moyenne simple, la
+     * seconde gagnait. C'est ce qui faisait passer une formation de
+     * maintenance devant une licence d'informatique dans CatalogueTest.
+     */
+    @Test
+    fun `la dimension dominante pese plus que des accords sur des dimensions faibles`() {
+        val profil = profilDeTest(
+            riasecProfile = RiasecProfile(
+                realiste = 20,
+                investigateur = 90,
+                artistique = 10,
+                social = 10,
+                entreprenant = 10,
+                conventionnel = 10,
+            ),
+        )
+        val surLaDominante = formationDeTest(
+            riasecProfile = RiasecProfile(60, 90, 40, 40, 40, 40),
+        )
+        val surLesDimensionsFaibles = formationDeTest(
+            riasecProfile = RiasecProfile(20, 40, 10, 10, 10, 10),
+        )
+
+        val scoreDominante = ScoringEngine.evaluer(surLaDominante, profil)
+            .breakdown.getValue(Criterion.INTERESTS)
+        val scoreFaibles = ScoringEngine.evaluer(surLesDimensionsFaibles, profil)
+            .breakdown.getValue(Criterion.INTERESTS)
+
+        assertTrue(
+            "Coller a la dimension dominante ($scoreDominante) doit primer sur " +
+                "l'accord avec des dimensions sans interet ($scoreFaibles)",
+            scoreDominante > scoreFaibles,
+        )
+    }
 }
