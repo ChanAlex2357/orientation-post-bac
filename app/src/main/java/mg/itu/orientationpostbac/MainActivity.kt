@@ -24,8 +24,10 @@ import mg.itu.orientationpostbac.ui.EcranDetail
 import mg.itu.orientationpostbac.ui.EcranFormations
 import mg.itu.orientationpostbac.ui.EcranParcours
 import mg.itu.orientationpostbac.ui.EcranProfil
+import mg.itu.orientationpostbac.ui.EcranProjet
 import mg.itu.orientationpostbac.ui.EcranQuestionnaire
 import mg.itu.orientationpostbac.ui.ProfilViewModel
+import mg.itu.orientationpostbac.ui.ProjetViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +61,8 @@ object Routes {
     const val PARCOURS = "parcours"
     const val FORMATIONS = "formations"
 
+    const val PROJET = "projet"
+
     /** Route a argument, patron exact du mini-TP 5 : la route porte du texte. */
     const val DETAIL = "detail/{formationId}"
     const val ARG_FORMATION_ID = "formationId"
@@ -86,6 +90,8 @@ private fun AppOrientation() {
     val etat by profilViewModel.etat.collectAsState()
     val etatCatalogue by catalogueViewModel.etat.collectAsState()
     val detail by catalogueViewModel.detail.collectAsState()
+    val projetViewModel: ProjetViewModel = viewModel()
+    val etatProjet by projetViewModel.etat.collectAsState()
 
     NavHost(navController = navController, startDestination = Routes.PROFIL) {
 
@@ -143,6 +149,7 @@ private fun AppOrientation() {
                 onFormationChoisie = { formationId ->
                     navController.navigate(Routes.detailDe(formationId))
                 },
+                onVoirMonProjet = { navController.navigate(Routes.PROJET) },
             )
         }
 
@@ -153,9 +160,22 @@ private fun AppOrientation() {
             LaunchedEffect(formationId) {
                 if (formationId != null) catalogueViewModel.ouvrirDetail(formationId)
             }
+            val fiche = detail?.takeIf { it.evaluee.formation.id == formationId }
             EcranDetail(
-                detail = detail?.takeIf { it.evaluee.formation.id == formationId },
+                detail = fiche,
+                dansLeProjet = etatProjet.candidatures.any { it.formation.id == formationId },
+                onAjouterAuProjet = { fiche?.let { projetViewModel.ajouter(it.evaluee.formation) } },
+                onRetirerDuProjet = { formationId?.let(projetViewModel::retirer) },
                 onRetour = { navController.popBackStack() },
+            )
+        }
+
+        composable(Routes.PROJET) {
+            EcranProjet(
+                etat = etatProjet,
+                onEtapeCochee = projetViewModel::marquerEtape,
+                onRetirer = projetViewModel::retirer,
+                onVoirFormations = { navController.popBackStack() },
             )
         }
     }

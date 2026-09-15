@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,6 +40,9 @@ import mg.itu.orientationpostbac.domain.bandeDeScore
 @Composable
 fun EcranDetail(
     detail: DetailFormation?,
+    dansLeProjet: Boolean,
+    onAjouterAuProjet: () -> Unit,
+    onRetirerDuProjet: () -> Unit,
     onRetour: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -83,6 +88,19 @@ fun EcranDetail(
         }
 
         BlocPratique(detail)
+
+        // Une formation non eligible peut quand meme etre suivie : le
+        // document interdit de la masquer, rien ne justifie d'interdire a
+        // l'eleve de la garder sous les yeux.
+        if (dansLeProjet) {
+            OutlinedButton(onClick = onRetirerDuProjet, modifier = Modifier.fillMaxWidth()) {
+                Text("Retirer de mon projet")
+            }
+        } else {
+            Button(onClick = onAjouterAuProjet, modifier = Modifier.fillMaxWidth()) {
+                Text("Ajouter a mon projet")
+            }
+        }
 
         Text(formation.description, style = MaterialTheme.typography.bodyMedium)
     }

@@ -97,6 +97,10 @@ interface EtapeChecklistDao {
     @Query("SELECT * FROM etape_checklist WHERE formationId = :formationId ORDER BY ordre ASC")
     fun pourFormation(formationId: String): Flow<List<EtapeChecklistEntity>>
 
+    /** Toutes les etapes : l'ecran Mon projet les regroupe par candidature. */
+    @Query("SELECT * FROM etape_checklist ORDER BY formationId ASC, ordre ASC")
+    fun toutes(): Flow<List<EtapeChecklistEntity>>
+
     @Query("UPDATE etape_checklist SET fait = :fait WHERE id = :id")
     suspend fun marquer(id: Int, fait: Boolean)
 
