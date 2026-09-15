@@ -6,6 +6,9 @@ import mg.itu.orientationpostbac.domain.RecognitionStatus
 import mg.itu.orientationpostbac.domain.RiasecProfile
 import mg.itu.orientationpostbac.domain.Serie
 import mg.itu.orientationpostbac.domain.TypeEtablissement
+import mg.itu.orientationpostbac.domain.UserConstraints
+import mg.itu.orientationpostbac.domain.UserPreferences
+import mg.itu.orientationpostbac.domain.UserProfile
 
 /**
  * Conversion entité Room -> classe de domaine. C'est ici que se paie le prix
@@ -106,3 +109,51 @@ fun texteVersStatut(texte: String): RecognitionStatus =
 /** Le type d'établissement ne conditionne aucune règle du moteur : il est affiché, pas calculé. */
 private fun texteVersTypeEtablissement(texte: String): TypeEtablissement =
     TypeEtablissement.entries.firstOrNull { it.name == texte } ?: TypeEtablissement.PRIVE
+
+/**
+ * Profil de l'élève. Retourne null si la série est illisible : la série
+ * commande le filtre d'éligibilité, un profil sans elle ne peut rien
+ * produire de juste. Mieux vaut redemander la saisie que calculer sur une
+ * série devinée.
+ */
+fun ProfilUtilisateurEntity.versDomaine(): UserProfile? {
+    val serieLue = Serie.entries.firstOrNull { it.name == serie } ?: return null
+    return UserProfile(
+        serie = serieLue,
+        riasecProfile = RiasecProfile(
+            realiste = riasecRealiste,
+            investigateur = riasecInvestigateur,
+            artistique = riasecArtistique,
+            social = riasecSocial,
+            entreprenant = riasecEntreprenant,
+            conventionnel = riasecConventionnel,
+        ),
+        niveauParMatiere = texteVersNiveaux(niveauParMatiere),
+        constraints = UserConstraints(
+            budgetMaxAriary = budgetMaxAriary,
+            localisationSouhaitee = localisationSouhaitee,
+            dureeMaxAnnees = dureeMaxAnnees,
+        ),
+        preferences = UserPreferences(modeAdmissionAccepte = texteVersListe(modeAdmissionAccepte).toSet()),
+    )
+}
+
+fun UserProfile.versEntite(): ProfilUtilisateurEntity = ProfilUtilisateurEntity(
+    serie = serie.name,
+    riasecRealiste = riasecProfile.realiste,
+    riasecInvestigateur = riasecProfile.investigateur,
+    riasecArtistique = riasecProfile.artistique,
+    riasecSocial = riasecProfile.social,
+    riasecEntreprenant = riasecProfile.entreprenant,
+    riasecConventionnel = riasecProfile.conventionnel,
+    niveauParMatiere = niveauxVersTexte(niveauParMatiere),
+    budgetMaxAriary = constraints.budgetMaxAriary,
+    localisationSouhaitee = constraints.localisationSouhaitee,
+    dureeMaxAnnees = constraints.dureeMaxAnnees,
+    modeAdmissionAccepte = preferences.modeAdmissionAccepte.joinToString(SEPARATEUR_LISTE),
+)
+
+fun niveauxVersTexte(niveaux: Map<String, Int>): String =
+    niveaux.entries.joinToString(SEPARATEUR_PAIRES) { (matiere, niveau) ->
+        "$matiere$SEPARATEUR_CLE_VALEUR$niveau"
+    }
