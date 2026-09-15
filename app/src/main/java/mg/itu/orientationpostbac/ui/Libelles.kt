@@ -1,5 +1,6 @@
 package mg.itu.orientationpostbac.ui
 
+import mg.itu.orientationpostbac.domain.BlockingReason
 import mg.itu.orientationpostbac.domain.MatchBand
 import mg.itu.orientationpostbac.domain.RecognitionStatus
 
@@ -34,3 +35,30 @@ fun avertissementDe(statut: RecognitionStatus): String? = when (statut) {
 /** La bande disparaît quand le statut est NON_VERIFIEE (tableau 12, 3e ligne). */
 fun bandeAffichable(statut: RecognitionStatus): Boolean =
     statut != RecognitionStatus.NON_VERIFIEE
+
+/**
+ * Motif d'exclusion, en clair. Le document impose que le motif soit VISIBLE
+ * (§9.2) : une formation non eligible n'est jamais masquee, elle bascule
+ * dans une section distincte ou l'eleve lit pourquoi.
+ *
+ * Le motif est formule comme un fait verifiable, jamais comme un verdict
+ * sur l'eleve. "Reservee aux series C et D" dit ce qu'exige la formation ;
+ * "tu n'as pas le bon bac" jugerait la personne.
+ */
+fun libelleDe(motif: BlockingReason): String = when (motif) {
+    is BlockingReason.SerieNonAdmissible ->
+        "Reservee aux series " + motif.seriesRequises.joinToString(", ") { it.name } +
+            ". Tu es en serie " + motif.serieActuelle.name + "."
+
+    is BlockingReason.NiveauInsuffisant ->
+        "Formation de niveau " + libelleGrade(motif.gradeFormation) +
+            ". Elle demande un diplome que l'on n'a pas en sortant du Baccalaureat."
+}
+
+/** Vocabulaire des arretes : le grade y est note L, M ou D (document, glossaire). */
+fun libelleGrade(grade: String): String = when (grade) {
+    "L" -> "Licence"
+    "M" -> "Master"
+    "D" -> "Doctorat"
+    else -> grade
+}

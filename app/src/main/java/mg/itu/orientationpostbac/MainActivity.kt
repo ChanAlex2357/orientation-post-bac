@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import mg.itu.orientationpostbac.data.AppDatabase
 import mg.itu.orientationpostbac.data.FormationRepository
 import mg.itu.orientationpostbac.ui.CatalogueViewModel
+import mg.itu.orientationpostbac.ui.EcranFormations
 import mg.itu.orientationpostbac.ui.EcranParcours
 import mg.itu.orientationpostbac.ui.EcranProfil
 import mg.itu.orientationpostbac.ui.EcranQuestionnaire
@@ -54,6 +55,7 @@ object Routes {
     const val PROFIL = "profil"
     const val QUESTIONNAIRE = "questionnaire"
     const val PARCOURS = "parcours"
+    const val FORMATIONS = "formations"
 }
 
 /**
@@ -112,9 +114,24 @@ private fun AppOrientation() {
                 reponsesDonnees = etat.questionsRepondues,
                 questionsTotal = etat.questions.size,
                 onCompleterQuestionnaire = { navController.navigate(Routes.QUESTIONNAIRE) },
-                onDomaineChoisi = { /* US5.4 : liste des formations du domaine */ },
-                onVoirToutesLesFormations = { /* US5.4 */ },
+                onDomaineChoisi = { domaine ->
+                    catalogueViewModel.filtrerParDomaine(domaine)
+                    navController.navigate(Routes.FORMATIONS)
+                },
+                onVoirToutesLesFormations = {
+                    catalogueViewModel.filtrerParDomaine(null)
+                    navController.navigate(Routes.FORMATIONS)
+                },
                 onModifierProfil = { navController.popBackStack(Routes.PROFIL, inclusive = false) },
+            )
+        }
+
+        composable(Routes.FORMATIONS) {
+            EcranFormations(
+                etat = etatCatalogue,
+                onRechercher = catalogueViewModel::rechercher,
+                onRetirerFiltre = { catalogueViewModel.filtrerParDomaine(null) },
+                onFormationChoisie = { /* US5.5 : detail/{formationId} */ },
             )
         }
     }
