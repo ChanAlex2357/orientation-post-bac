@@ -17,6 +17,18 @@ data class CompatibilityResult(
     val reasons: List<String>,
 )
 
+/**
+ * Bandes du tableau 10. Definie hors du ScoringEngine parce que l'ecran
+ * Parcours suggeres en a besoin pour les domaines : deux jeux de seuils qui
+ * derivent finiraient par afficher deux verdicts differents sur un meme score.
+ */
+fun bandeDeScore(score: Int): MatchBand = when {
+    score >= 85 -> MatchBand.EXCELLENT
+    score >= 70 -> MatchBand.GOOD
+    score >= 50 -> MatchBand.PARTIAL
+    else -> MatchBand.WEAK
+}
+
 private const val NIVEAU_PAR_DEFAUT = 50
 private const val SEUIL_MESSAGE_POSITIF = 70
 private const val SEUIL_PLAFONNEMENT_INTERETS = 50
@@ -63,7 +75,7 @@ object ScoringEngine {
             .roundToInt()
             .coerceIn(0, 100)
 
-        val bande = bandeDepuisScore(score).let { bandeBrute ->
+        val bande = bandeDeScore(score).let { bandeBrute ->
             val scoreInterets = breakdown.getValue(Criterion.INTERESTS)
             if (scoreInterets < SEUIL_PLAFONNEMENT_INTERETS &&
                 (bandeBrute == MatchBand.EXCELLENT || bandeBrute == MatchBand.GOOD)
@@ -81,13 +93,6 @@ object ScoringEngine {
             breakdown = breakdown,
             reasons = construireExplications(breakdown),
         )
-    }
-
-    private fun bandeDepuisScore(score: Int): MatchBand = when {
-        score >= 85 -> MatchBand.EXCELLENT
-        score >= 70 -> MatchBand.GOOD
-        score >= 50 -> MatchBand.PARTIAL
-        else -> MatchBand.WEAK
     }
 
     /**
