@@ -14,6 +14,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -39,10 +40,12 @@ fun EcranFormations(
     onRechercher: (String) -> Unit,
     onRetirerFiltre: () -> Unit,
     onFormationChoisie: (String) -> Unit,
+    onVoirMonProjet: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize().padding(16.dp)) {
         Text("Formations", style = MaterialTheme.typography.headlineSmall)
+        TextButton(onClick = onVoirMonProjet) { Text("Mon projet") }
 
         OutlinedTextField(
             value = etat.recherche,
