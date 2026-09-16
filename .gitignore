@@ -11,3 +11,6 @@ local.properties
 *.hprof
 app/build/
 app/release/
+
+# Captures produites par scripts/scenario_annexe_b.py
+scripts/captures/
