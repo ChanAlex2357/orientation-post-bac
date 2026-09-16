@@ -73,4 +73,26 @@ class JeuDeDonneesTest {
     fun `le jeu de donnees couvre les 6 domaines du tableau 17`() {
         assertEquals(6, formationsInitiales.map { it.domaine }.distinct().size)
     }
+
+    /**
+     * Garde-fou jumeau de celui sur les arretes. Une fiche qui affiche
+     * "Source : qualite.mesupres.mg" ne doit contenir que ce que cette
+     * source publie. Les listes d'habilitation ne donnent pas les frais de
+     * scolarite : un montant sur une fiche reelle serait une invention
+     * presentee comme une donnee officielle.
+     */
+    @Test
+    fun `aucune formation reelle ne porte de cout invente`() {
+        val reellesAvecCout = formationsInitiales
+            .filterNot { it.sourceInformation.startsWith("Donnee fictive") }
+            .filter { it.coutIndicatif != null }
+
+        assertTrue("Couts inventes sur des fiches reelles : $reellesAvecCout", reellesAvecCout.isEmpty())
+    }
+
+    /** Le scenario de demonstration doit pouvoir montrer un cout non renseigne (US7.1). */
+    @Test
+    fun `le jeu de donnees contient au moins un cout non renseigne`() {
+        assertTrue(formationsInitiales.any { it.coutIndicatif == null })
+    }
 }

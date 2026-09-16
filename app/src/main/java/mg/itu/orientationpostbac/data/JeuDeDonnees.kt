@@ -140,8 +140,12 @@ val formationsInitiales = listOf(
         matieresCles = "Mathematiques,Physique",
         conditionsAdmission = "Baccalaureat serie C ou D, dossier et concours d'entree.",
         modeAdmission = "Concours",
-        niveauCout = "faible",
-        coutIndicatif = 200_000,
+        // Les listes d'habilitation du ministere ne publient pas les frais
+        // de scolarite. Mettre un montant ici reviendrait a faire passer une
+        // invention pour une donnee sourcee, sous une ligne "Source" qui cite
+        // le portail. Un cout non renseigne se dit, il ne se devine pas.
+        niveauCout = "non renseigne",
+        coutIndicatif = null,
         riasecRealiste = 70,
         riasecInvestigateur = 90,
         riasecArtistique = 30,
@@ -168,8 +172,8 @@ val formationsInitiales = listOf(
         matieresCles = "Mathematiques,Physique",
         conditionsAdmission = "Licence en informatique ou equivalent.",
         modeAdmission = "Dossier",
-        niveauCout = "faible",
-        coutIndicatif = 250_000,
+        niveauCout = "non renseigne",
+        coutIndicatif = null,
         riasecRealiste = 70,
         riasecInvestigateur = 92,
         riasecArtistique = 30,
