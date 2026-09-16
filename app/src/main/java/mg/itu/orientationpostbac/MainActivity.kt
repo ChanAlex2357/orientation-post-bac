@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 import mg.itu.orientationpostbac.data.AppDatabase
 import mg.itu.orientationpostbac.data.FormationRepository
 import mg.itu.orientationpostbac.ui.CatalogueViewModel
+import mg.itu.orientationpostbac.ui.EcranDetail
 import mg.itu.orientationpostbac.ui.EcranFormations
 import mg.itu.orientationpostbac.ui.EcranParcours
 import mg.itu.orientationpostbac.ui.EcranProfil
@@ -56,6 +58,12 @@ object Routes {
     const val QUESTIONNAIRE = "questionnaire"
     const val PARCOURS = "parcours"
     const val FORMATIONS = "formations"
+
+    /** Route a argument, patron exact du mini-TP 5 : la route porte du texte. */
+    const val DETAIL = "detail/{formationId}"
+    const val ARG_FORMATION_ID = "formationId"
+
+    fun detailDe(formationId: String) = "detail/$formationId"
 }
 
 /**
@@ -77,6 +85,7 @@ private fun AppOrientation() {
     val catalogueViewModel: CatalogueViewModel = viewModel()
     val etat by profilViewModel.etat.collectAsState()
     val etatCatalogue by catalogueViewModel.etat.collectAsState()
+    val detail by catalogueViewModel.detail.collectAsState()
 
     NavHost(navController = navController, startDestination = Routes.PROFIL) {
 
@@ -131,7 +140,22 @@ private fun AppOrientation() {
                 etat = etatCatalogue,
                 onRechercher = catalogueViewModel::rechercher,
                 onRetirerFiltre = { catalogueViewModel.filtrerParDomaine(null) },
-                onFormationChoisie = { /* US5.5 : detail/{formationId} */ },
+                onFormationChoisie = { formationId ->
+                    navController.navigate(Routes.detailDe(formationId))
+                },
+            )
+        }
+
+        composable(Routes.DETAIL) { backStackEntry ->
+            // L'ecran ne recoit pas la formation : il relit l'identifiant
+            // porte par la route et la retrouve en base (mini-TP 5 + seance 7).
+            val formationId = backStackEntry.arguments?.getString(Routes.ARG_FORMATION_ID)
+            LaunchedEffect(formationId) {
+                if (formationId != null) catalogueViewModel.ouvrirDetail(formationId)
+            }
+            EcranDetail(
+                detail = detail?.takeIf { it.evaluee.formation.id == formationId },
+                onRetour = { navController.popBackStack() },
             )
         }
     }

@@ -1,6 +1,7 @@
 package mg.itu.orientationpostbac.ui
 
 import mg.itu.orientationpostbac.domain.BlockingReason
+import mg.itu.orientationpostbac.domain.Criterion
 import mg.itu.orientationpostbac.domain.MatchBand
 import mg.itu.orientationpostbac.domain.RecognitionStatus
 
@@ -61,4 +62,14 @@ fun libelleGrade(grade: String): String = when (grade) {
     "M" -> "Master"
     "D" -> "Doctorat"
     else -> grade
+}
+
+/** Les 6 criteres du tableau 9, tels qu'ils apparaissent dans le depliage du score. */
+fun libelleDe(critere: Criterion): String = when (critere) {
+    Criterion.INTERESTS -> "Interets"
+    Criterion.LEVEL -> "Niveau dans les matieres cles"
+    Criterion.BUDGET -> "Budget"
+    Criterion.LOCATION -> "Localisation"
+    Criterion.DURATION -> "Duree"
+    Criterion.ADMISSION -> "Mode d'admission"
 }
