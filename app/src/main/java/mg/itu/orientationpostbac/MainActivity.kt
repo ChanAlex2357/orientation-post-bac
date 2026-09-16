@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -72,15 +73,17 @@ object Routes {
 
 /**
  * Navigation, reprise du patron du mini-TP 5 : un `NavHost`, une route par
- * écran, `popBackStack()` pour le retour.
+ * écran, `popBackStack()` pour le retour, et une seule route à argument,
+ * `detail/{formationId}`.
  *
- * Elle apparaît dès le deuxième écran plutôt qu'à l'US6.1 comme prévu au
- * backlog : un aiguillage maison, écrit puis jeté, aurait coûté plus cher
- * que le `NavHost` lui-même. L'US6.1 le complètera avec les routes
- * restantes et l'argument `detail/{formationId}`.
+ * Les 3 ViewModels sont obtenus ici et partagés par les écrans qui en
+ * dépendent : le profil et le questionnaire remplissent un seul et même
+ * objet, et les 3 écrans de consultation lisent un seul et même calcul.
  *
- * Les 2 écrans partagent le même ProfilViewModel, obtenu ici : le profil et
- * le questionnaire remplissent un seul et même objet.
+ * Le parcours forme un entonnoir — profil, questionnaire, puis consultation
+ * — et l'élève peut remonter à chaque étape pour corriger. Les allers-retours
+ * entre ces écrans ne doivent pas empiler de doublons dans la pile de retour :
+ * c'est le rôle de `retourner()` ci-dessous.
  */
 @Composable
 private fun AppOrientation() {
@@ -117,7 +120,7 @@ private fun AppOrientation() {
                     // questionnaire changent le RiasecProfile calcule, et
                     // c'est cet enregistrement que le catalogue observe.
                     profilViewModel.enregistrer()
-                    navController.navigate(Routes.PARCOURS)
+                    navController.retourner(Routes.PARCOURS)
                 },
                 onRetour = { navController.popBackStack() },
             )
@@ -128,7 +131,7 @@ private fun AppOrientation() {
                 etat = etatCatalogue,
                 reponsesDonnees = etat.questionsRepondues,
                 questionsTotal = etat.questions.size,
-                onCompleterQuestionnaire = { navController.navigate(Routes.QUESTIONNAIRE) },
+                onCompleterQuestionnaire = { navController.retourner(Routes.QUESTIONNAIRE) },
                 onDomaineChoisi = { domaine ->
                     catalogueViewModel.filtrerParDomaine(domaine)
                     navController.navigate(Routes.FORMATIONS)
@@ -138,6 +141,7 @@ private fun AppOrientation() {
                     navController.navigate(Routes.FORMATIONS)
                 },
                 onModifierProfil = { navController.popBackStack(Routes.PROFIL, inclusive = false) },
+                onVoirMonProjet = { navController.retourner(Routes.PROJET) },
             )
         }
 
@@ -149,7 +153,7 @@ private fun AppOrientation() {
                 onFormationChoisie = { formationId ->
                     navController.navigate(Routes.detailDe(formationId))
                 },
-                onVoirMonProjet = { navController.navigate(Routes.PROJET) },
+                onVoirMonProjet = { navController.retourner(Routes.PROJET) },
             )
         }
 
@@ -166,6 +170,7 @@ private fun AppOrientation() {
                 dansLeProjet = etatProjet.candidatures.any { it.formation.id == formationId },
                 onAjouterAuProjet = { fiche?.let { projetViewModel.ajouter(it.evaluee.formation) } },
                 onRetirerDuProjet = { formationId?.let(projetViewModel::retirer) },
+                onVoirMonProjet = { navController.retourner(Routes.PROJET) },
                 onRetour = { navController.popBackStack() },
             )
         }
@@ -175,8 +180,25 @@ private fun AppOrientation() {
                 etat = etatProjet,
                 onEtapeCochee = projetViewModel::marquerEtape,
                 onRetirer = projetViewModel::retirer,
-                onVoirFormations = { navController.popBackStack() },
+                // navigate et non popBackStack : Mon projet est atteignable
+                // depuis plusieurs ecrans, donc "revenir" n'a pas de sens ici.
+                onVoirFormations = { navController.retourner(Routes.FORMATIONS) },
             )
         }
+    }
+}
+
+/**
+ * Navigue vers un ecran deja visite sans en empiler un doublon.
+ *
+ * Sans cela, un aller-retour entre le questionnaire et les parcours
+ * suggeres ajoutait une entree a chaque passage : apres trois corrections
+ * du questionnaire, il fallait appuyer six fois sur Retour pour revenir au
+ * profil. La pile doit refleter le chemin de l'eleve, pas son hesitation.
+ */
+private fun NavController.retourner(route: String) {
+    navigate(route) {
+        popUpTo(route) { inclusive = true }
+        launchSingleTop = true
     }
 }
