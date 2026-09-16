@@ -30,6 +30,7 @@ import mg.itu.orientationpostbac.domain.evaluerCatalogue
  */
 data class EtatCatalogue(
     val recherche: String = "",
+    val domaineFiltre: String? = null,
     val profilRenseigne: Boolean = false,
     val eligibles: List<FormationEvaluee> = emptyList(),
     val nonEligibles: List<FormationEvaluee> = emptyList(),
@@ -51,6 +52,14 @@ class CatalogueViewModel(application: Application) : AndroidViewModel(applicatio
     private val recherche = MutableStateFlow("")
 
     /**
+     * Le domaine choisi a l'ecran Parcours suggeres. C'est un filtre, pas une
+     * identite : il vit dans le ViewModel plutot que dans la route. L'argument
+     * de route reste reserve a ce qui designe une ressource, comme
+     * detail/{formationId} (US6.1, patron du mini-TP 5).
+     */
+    private val domaine = MutableStateFlow<String?>(null)
+
+    /**
      * La recherche change la SOURCE des formations, elle ne filtre pas la
      * liste déjà chargée : c'est une requête Room (séance 7), qui doit être
      * relancée à chaque frappe. flatMapLatest abandonne la requête précédente
@@ -67,10 +76,15 @@ class CatalogueViewModel(application: Application) : AndroidViewModel(applicatio
         formationsAffichees,
         profilRepository.profil,
         recherche,
-    ) { formations, profil, motCle ->
-        val evaluees = evaluerCatalogue(formations, profil)
+        domaine,
+    ) { formations, profil, motCle, domaineChoisi ->
+        val retenues =
+            if (domaineChoisi == null) formations
+            else formations.filter { it.domaine == domaineChoisi }
+        val evaluees = evaluerCatalogue(retenues, profil)
         EtatCatalogue(
             recherche = motCle,
+            domaineFiltre = domaineChoisi,
             profilRenseigne = profil != null,
             eligibles = classerEligibles(evaluees),
             nonEligibles = classerNonEligibles(evaluees),
@@ -84,5 +98,9 @@ class CatalogueViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun rechercher(motCle: String) {
         recherche.value = motCle
+    }
+
+    fun filtrerParDomaine(domaineChoisi: String?) {
+        domaine.value = domaineChoisi
     }
 }
