@@ -167,10 +167,15 @@ private val NIVEAUX: List<Pair<Int, String>> = listOf(
     100 to "Tres bon",
 )
 
+/**
+ * Tranches alignées sur les frais annuels du privé cités par le document
+ * (800 000 à 6 000 000 Ar) : "Confortable" couvre tout le marché, "Limite"
+ * ne couvre que le public et le bas de gamme du privé.
+ */
 private val BUDGETS: List<Pair<Int?, String>> = listOf(
-    300_000 to "Limite",
-    1_000_000 to "Moyen",
-    2_000_000 to "Confortable",
+    1_000_000 to "Limite",
+    3_000_000 to "Moyen",
+    6_000_000 to "Confortable",
     null to "Peu importe",
 )
 
