@@ -125,7 +125,7 @@ class CatalogueTest {
 
     @Test
     fun `le budget penalise sans exclure`() {
-        // Sciences infirmieres coute 1 800 000 Ar, Toky a declare 1 000 000.
+        // Sciences infirmieres coute 3 500 000 Ar, Toky a declare 1 000 000.
         val infirmier = evaluee("F005")
 
         assertTrue("Le budget n'est jamais bloquant (tableau 8)", infirmier.eligible)
