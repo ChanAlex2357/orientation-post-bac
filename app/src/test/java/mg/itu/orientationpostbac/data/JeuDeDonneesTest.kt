@@ -95,4 +95,23 @@ class JeuDeDonneesTest {
     fun `le jeu de donnees contient au moins un cout non renseigne`() {
         assertTrue(formationsInitiales.any { it.coutIndicatif == null })
     }
+
+    /**
+     * Une fiche reelle n'existe que parce qu'une ligne de liste ministerielle
+     * existe : elle porte donc toujours son arrete, et jamais le statut
+     * NON_VERIFIEE, reserve aux filieres absentes des listes (tableau 16).
+     */
+    @Test
+    fun `chaque formation reelle porte un arrete et un statut issu de la liste`() {
+        val reelles = formationsInitiales.filterNot { it.sourceInformation.startsWith("Donnee fictive") }
+
+        assertTrue("Au moins 10 formations reelles", reelles.size >= 10)
+        reelles.forEach { formation ->
+            assertTrue("Arrete manquant : ${formation.id}", formation.referenceArrete.isNotBlank())
+            assertTrue(
+                "Statut hors tableau 16 : ${formation.id}",
+                formation.statutReconnaissance in setOf("VERIFIEE", "A_CONFIRMER"),
+            )
+        }
+    }
 }
